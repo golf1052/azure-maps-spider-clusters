@@ -164,14 +164,14 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
     /**
      * Gets the options of the SpiderClusterManager.
      */
-    private getOptions(): SpiderClusterOptions {
+     public getOptions(): SpiderClusterOptions {
         return JSON.parse(JSON.stringify(this._options));
     }
 
     /**
      * Gets all layers managed by the spider cluster manager.
      */
-    private getLayers(): SpiderClusterLayers {
+     public getLayers(): SpiderClusterLayers {
         const self = this;
 
         return {
@@ -185,7 +185,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
     /**
     * Collapses any open/expanded spider clusters.
     */
-    private hideSpiderCluster = (): void => {
+     public hideSpiderCluster = (): void => {
         this._spiderDataSource.clear();
     }
 

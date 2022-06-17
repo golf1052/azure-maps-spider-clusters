@@ -55,7 +55,7 @@ MIT License
     }
 
     /**
-    * Adds a clustering layer to the map which expands clusters into a spiral spider layout.
+    * Adds a visualization to the map which expands clusters into a spiral spider layout.
     */
     var SpiderClusterManager = /** @class */ (function (_super) {
         __extends(SpiderClusterManager, _super);
@@ -67,6 +67,7 @@ MIT License
         * A cluster manager that expands clusters when selectd into a spiral layout.
         * @param map A map instance to add the cluster layer to.
         * @param clusterLayer The layer used for rendering the clusters.
+        * @param unclustedLayer The rendering layer used for displaying unclustered data (individual features).
         * @param options A combination of SpiderClusterManager and Cluster options.
         */
         function SpiderClusterManager(map, clusterLayer, unclustedLayer, options) {
@@ -88,7 +89,7 @@ MIT License
                 }
             };
             /**
-            * Collapses any open spider clusters.
+            * Collapses any open/expanded spider clusters.
             */
             _this.hideSpiderCluster = function () {
                 _this._spiderDataSource.clear();
@@ -277,6 +278,24 @@ MIT License
             self._spiderDataSource.clear();
             map.sources.remove(self._spiderDataSource);
             self._spiderDataSource = null;
+        };
+        /**
+         * Gets the options of the SpiderClusterManager.
+         */
+        SpiderClusterManager.prototype.getOptions = function () {
+            return JSON.parse(JSON.stringify(this._options));
+        };
+        /**
+         * Gets all layers managed by the spider cluster manager.
+         */
+        SpiderClusterManager.prototype.getLayers = function () {
+            var self = this;
+            return {
+                clusterLayer: self._clusterLayer,
+                unclustedLayer: self._unclustedLayer,
+                spiderFeatureLayer: self._spiderFeatureLayer,
+                spiderLineLayer: self._spiderLineLayer
+            };
         };
         /**
         * Sets the options used to customize how the SpiderClusterManager renders clusters.

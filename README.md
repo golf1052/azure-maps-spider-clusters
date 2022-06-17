@@ -66,7 +66,7 @@ map.layers.add([
 ]);
 
 //Create an instance of the spider manager.
-var spiderManager = new atlas.SpiderClusterManager(map, clusterBubbleLayer, shapeLayer);
+var spiderManager = new atlas.SpiderClusterManager(map, clusterBubbleLayer, featureLayer);
 
 //Optionally, add event handler for when a feature is selected.
 map.events.add('featureSelected', spiderManager, function(e) {

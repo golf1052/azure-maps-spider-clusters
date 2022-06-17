@@ -93,17 +93,17 @@ declare namespace atlas {
         /**
          * Gets all layers managed by the spider cluster manager.
          */
-        private getLayers(): SpiderClusterLayers;
+         public getLayers(): SpiderClusterLayers;
 
         /**
          * Gets the options of the SpiderClusterManager.
          */
-        private getOptions(): SpiderClusterOptions;
+         public getOptions(): SpiderClusterOptions;
 
         /**
         * Collapses any open/expanded spider clusters.
         */
-        private hideSpiderCluster();
+         public hideSpiderCluster();
 
         /**
         * Sets the options used to customize how the SpiderClusterManager renders clusters.
