@@ -16,7 +16,7 @@ A module for the Azure Maps Web SDK that adds a visualization to the map which e
 **Samples**
 
 [Expanding Spider Clusters](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Expanding%20Spider%20Clusters)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Expanding-Spider-Clusters.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Expanding%20Spider%20Clusters)
+<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/vnext/Samples/Symbol%20Layer/Expanding%20Spider%20Clusters/screenshot.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Expanding%20Spider%20Clusters)
 
 ## Getting started
 
