@@ -79,6 +79,7 @@ MIT License
                 minSpiralAngleSeperation: 25,
                 spiralDistanceFactor: 5,
                 maxFeaturesInWeb: 100,
+                closeWebOnPointClick: true,
                 stickLayerOptions: {
                     strokeColor: [
                         'case',
@@ -91,8 +92,15 @@ MIT License
             /**
             * Collapses any open/expanded spider clusters.
             */
-            _this.hideSpiderCluster = function () {
-                _this._spiderDataSource.clear();
+            _this.hideSpiderCluster = function (e) {
+                var self = _this;
+                //If closeWebOnPointClick is false, only hide the spider web if the first feature is not in the web layer.
+                //If closeWebOnPointClick is true, hide the spider web.
+                if (!e || self._options.closeWebOnPointClick ||
+                    //@ts-ignore      
+                    (!self._options.closeWebOnPointClick && e.shapes && e.shapes.length > 0 && (e.shapes[0] instanceof azmaps.Shape && e.shapes[0].dataSource && e.shapes[0].dataSource.id !== self._spiderDataSource.getId()))) {
+                    self._spiderDataSource.clear();
+                }
             };
             /**********************
             * Private Functions
@@ -146,7 +154,9 @@ MIT License
                                 shape: s
                             });
                         }
-                        self.hideSpiderCluster();
+                        if (self._options.closeWebOnPointClick) {
+                            self.hideSpiderCluster();
+                        }
                     }
                     e.preventDefault();
                 }
@@ -304,7 +314,7 @@ MIT License
         SpiderClusterManager.prototype.setOptions = function (options) {
             var self = this;
             var opt = self._options;
-            this.hideSpiderCluster();
+            self.hideSpiderCluster();
             if (options) {
                 if (typeof options.circleSpiralSwitchover === 'number') {
                     opt.circleSpiralSwitchover = options.circleSpiralSwitchover;
@@ -320,6 +330,9 @@ MIT License
                 }
                 if (typeof options.minCircleLength === 'number') {
                     opt.minCircleLength = options.minCircleLength;
+                }
+                if (typeof options.closeWebOnPointClick === 'boolean') {
+                    opt.closeWebOnPointClick = options.closeWebOnPointClick;
                 }
                 if (options.stickLayerOptions) {
                     opt.stickLayerOptions = options.stickLayerOptions;
@@ -340,9 +353,15 @@ MIT License
             var _this = this;
             var self = this;
             var opt = self._options;
-            self.hideSpiderCluster();
+            var oldData = self._spiderDataSource.getShapes();
             if (cluster && cluster.properties.cluster) {
-                self._datasource.getClusterLeaves(cluster.properties.cluster_id, opt.maxFeaturesInWeb, 0).then(function (children) {
+                var clusterId_1 = cluster.properties.cluster_id;
+                if (oldData.length > 0 && oldData[0].getProperties().cluster_id === clusterId_1) {
+                    //No need to reload the spider web. 
+                    return;
+                }
+                self.hideSpiderCluster();
+                self._datasource.getClusterLeaves(clusterId_1, opt.maxFeaturesInWeb, 0).then(function (children) {
                     //Create spider data.
                     var center = cluster.geometry.coordinates;
                     var centerPoint = self._map.positionsToPixels([center])[0];
@@ -385,6 +404,7 @@ MIT License
                         var p = Object.assign({}, (c instanceof azmaps.Shape) ? c.getProperties() : c.properties);
                         p._stickId = i + '';
                         p._parentId = id;
+                        p._cluster = clusterId_1;
                         shapes.push(new azmaps.data.Feature(new azmaps.data.Point(pos), p));
                     }
                     _this._spiderDataSource.add(shapes);

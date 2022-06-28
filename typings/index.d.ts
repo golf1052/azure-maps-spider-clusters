@@ -42,6 +42,9 @@ declare namespace atlas {
         /** Minimium number of point features in cluster before switching from circle to spiral spider layout. Default: `6` */
         circleSpiralSwitchover?: number;
 
+        /** A boolean indicating if the expanded spider web should be closed when one of it's points are clicked. Default: `true` */
+        closeWebOnPointClick?: boolean;
+
         /** The minimum pixel distance between point features and the cluster, when rendering spider layout as a circle. Default: `30` */
         minCircleLength?: number;
 

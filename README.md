@@ -123,6 +123,7 @@ Options used to customize how the `SpiderClusterManager` renders clusters.
 | Name | Type | Description |
 |------|------|-------------|
 | `circleSpiralSwitchover` | `number` | Minimium number of point features in cluster before switching from circle to spiral spider layout. Default: `6` |
+| `closeWebOnPointClick` | `boolean` | A boolean indicating if the expanded spider web should be closed when one of it's points are clicked. Default: `true` |
 | `maxFeaturesInWeb` | `number` | The maximum number of features that can be rendered in the spider layout. When the cluster is bigger than this value, it will zoom until the cluster starts to break apart. Default: `100` |
 | `minCircleLength` | `number` | The minimum pixel distance between point features and the cluster, when rendering spider layout as a circle. Default: `30` |
 | `minSpiralAngleSeperation` | `number` | The minimum angle between point features in the spiral. Default: `25` |

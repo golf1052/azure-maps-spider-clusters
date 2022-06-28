@@ -22,13 +22,14 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
     private _hoverStateId: string = null;
     private _spiderDatasourceId: string;
     private _currentCluster: azmaps.data.Feature<azmaps.data.Point, any>;
-    
+
     private _options: SpiderClusterOptions = {
         circleSpiralSwitchover: 6,
         minCircleLength: 30,
         minSpiralAngleSeperation: 25,
         spiralDistanceFactor: 5,
         maxFeaturesInWeb: 100,
+        closeWebOnPointClick: true,
         stickLayerOptions: {
             strokeColor: [
                 'case',
@@ -60,7 +61,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
 
         self._map = map;
         self._clusterLayer = clusterLayer;
-        
+
         let s = clusterLayer.getSource();
         if (typeof s === 'string') {
             s = map.sources.getById(s);
@@ -83,7 +84,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
 
         self._spiderLineLayer = new azlayer.LineLayer(spiderDataSource, null, self._options.stickLayerOptions);
         map.layers.add(self._spiderLineLayer);
-        
+
         //Make a copy of the cluster layer options.
         var unclustedLayerOptions = Object.assign({}, unclustedLayer.getOptions());
         unclustedLayerOptions.source = undefined;
@@ -118,7 +119,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
         mapEvents.add('click', hideSpiderCluster);
         mapEvents.add('movestart', hideSpiderCluster);
         mapEvents.add('mouseleave', spiderFeatureLayer, self._unhighlightStick);
-        mapEvents.add('mousemove', spiderFeatureLayer, self._highlightStick);        
+        mapEvents.add('mousemove', spiderFeatureLayer, self._highlightStick);
         mapEvents.add('click', clusterLayer, layerClickEvent);
         mapEvents.add('click', spiderFeatureLayer, layerClickEvent);
         mapEvents.add('click', unclustedLayer, layerClickEvent);
@@ -153,7 +154,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
         self._spiderFeatureLayer = null;
 
         map.layers.remove(self._spiderLineLayer);
-        self._spiderLineLayer = null;        
+        self._spiderLineLayer = null;
 
         //Clear and dispose of datasource.
         self._spiderDataSource.clear();
@@ -164,14 +165,14 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
     /**
      * Gets the options of the SpiderClusterManager.
      */
-     public getOptions(): SpiderClusterOptions {
+    public getOptions(): SpiderClusterOptions {
         return JSON.parse(JSON.stringify(this._options));
     }
 
     /**
      * Gets all layers managed by the spider cluster manager.
      */
-     public getLayers(): SpiderClusterLayers {
+    public getLayers(): SpiderClusterLayers {
         const self = this;
 
         return {
@@ -185,49 +186,61 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
     /**
     * Collapses any open/expanded spider clusters.
     */
-     public hideSpiderCluster = (): void => {
-        this._spiderDataSource.clear();
+    public hideSpiderCluster = (e?: azmaps.MapMouseEvent): void => {
+        const self = this;
+        //If closeWebOnPointClick is false, only hide the spider web if the first feature is not in the web layer.
+        //If closeWebOnPointClick is true, hide the spider web.
+
+        if (!e || self._options.closeWebOnPointClick ||
+            //@ts-ignore      
+            (!self._options.closeWebOnPointClick && e.shapes && e.shapes.length > 0 && (e.shapes[0] instanceof azmaps.Shape && e.shapes[0].dataSource && e.shapes[0].dataSource.id !== self._spiderDataSource.getId()))) {
+            self._spiderDataSource.clear();
+        }
     }
 
     /**
     * Sets the options used to customize how the SpiderClusterManager renders clusters.
     * @param options The options used to customize how the SpiderClusterManager renders clusters.
     */
-    public setOptions(options: SpiderClusterOptions): void {        
+    public setOptions(options: SpiderClusterOptions): void {
         const self = this;
         const opt = self._options;
 
-        this.hideSpiderCluster();
+        self.hideSpiderCluster();
 
         if (options) {
             if (typeof options.circleSpiralSwitchover === 'number') {
-               opt.circleSpiralSwitchover = options.circleSpiralSwitchover;
-            } 
+                opt.circleSpiralSwitchover = options.circleSpiralSwitchover;
+            }
 
             if (typeof options.maxFeaturesInWeb === 'number') {
-               opt.maxFeaturesInWeb = options.maxFeaturesInWeb;
-            } 
+                opt.maxFeaturesInWeb = options.maxFeaturesInWeb;
+            }
 
             if (typeof options.minSpiralAngleSeperation === 'number') {
-               opt.minSpiralAngleSeperation = options.minSpiralAngleSeperation;
+                opt.minSpiralAngleSeperation = options.minSpiralAngleSeperation;
             }
 
             if (typeof options.spiralDistanceFactor === 'number') {
-               opt.spiralDistanceFactor = options.spiralDistanceFactor;
+                opt.spiralDistanceFactor = options.spiralDistanceFactor;
             }
 
             if (typeof options.minCircleLength === 'number') {
-               opt.minCircleLength = options.minCircleLength;
+                opt.minCircleLength = options.minCircleLength;
+            }
+
+            if (typeof options.closeWebOnPointClick === 'boolean') {
+                opt.closeWebOnPointClick = options.closeWebOnPointClick;
             }
 
             if (options.stickLayerOptions) {
-               opt.stickLayerOptions = options.stickLayerOptions;
-               self._spiderLineLayer.setOptions(options.stickLayerOptions);
+                opt.stickLayerOptions = options.stickLayerOptions;
+                self._spiderLineLayer.setOptions(options.stickLayerOptions);
             }
 
             if (typeof options.visible === 'boolean' && opt.visible !== options.visible) {
-               opt.visible = options.visible;
-               self._spiderLineLayer.setOptions({ visible: options.visible });
+                opt.visible = options.visible;
+                self._spiderLineLayer.setOptions({ visible: options.visible });
                 (<azmaps.layer.SymbolLayer>self._spiderFeatureLayer).setOptions({ visible: options.visible });
             }
         }
@@ -241,10 +254,19 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
         const self = this;
         const opt = self._options;
 
-        self.hideSpiderCluster();
+        const oldData = self._spiderDataSource.getShapes();
 
         if (cluster && (<azmaps.ClusteredProperties>cluster.properties).cluster) {
-            self._datasource.getClusterLeaves((<azmaps.ClusteredProperties>cluster.properties).cluster_id, opt.maxFeaturesInWeb, 0).then((children) => {
+            const clusterId = (<azmaps.ClusteredProperties>cluster.properties).cluster_id;
+
+            if (oldData.length > 0 && oldData[0].getProperties().cluster_id === clusterId) {
+                //No need to reload the spider web. 
+                return;
+            }
+
+            self.hideSpiderCluster();
+
+            self._datasource.getClusterLeaves(clusterId, opt.maxFeaturesInWeb, 0).then((children) => {
                 //Create spider data.
                 const center = cluster.geometry.coordinates;
                 const centerPoint = self._map.positionsToPixels([center])[0];
@@ -285,7 +307,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
                         centerPoint[1] + legPixelLength * Math.sin(angle)]])[0];
 
                     //Create stick to point feature.
-                    shapes.push(new azmaps.data.Feature(new azmaps.data.LineString([center, pos]), null, i+''));
+                    shapes.push(new azmaps.data.Feature(new azmaps.data.LineString([center, pos]), null, i + ''));
 
                     //Create point feature in spiral that contains same metadata as parent point feature.
                     const c = children[i];
@@ -293,8 +315,9 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
 
                     //Make a copy of the properties.
                     const p = Object.assign({}, (c instanceof azmaps.Shape) ? c.getProperties() : c.properties);
-                    p._stickId = i+'';
+                    p._stickId = i + '';
                     p._parentId = id;
+                    p._cluster = clusterId;
 
                     shapes.push(new azmaps.data.Feature(new azmaps.data.Point(pos), p));
                 }
@@ -353,7 +376,7 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
                 } else {
                     self._currentCluster = null;
                 }
-               
+
                 if (s) {
                     self._invokeEvent('featureSelected', {
                         cluster: self._currentCluster,
@@ -361,7 +384,9 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
                     });
                 }
 
-                self.hideSpiderCluster();
+                if(self._options.closeWebOnPointClick){
+                    self.hideSpiderCluster();
+                }
             }
 
             e.preventDefault();
