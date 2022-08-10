@@ -1,4 +1,6 @@
 /*
+azure-maps-spider-clusters Version: 0.0.1
+
 MIT License
 
     Copyright (c) Microsoft Corporation.
