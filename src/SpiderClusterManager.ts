@@ -360,16 +360,18 @@ export class SpiderClusterManager extends azmaps.internal.EventEmitter<SpiderClu
 
                 self._currentCluster = <azmaps.data.Feature<azmaps.data.Point, any>>e.shapes[0];
 
-                if (prop.point_count > self._options.maxFeaturesInWeb) {
-                    self._datasource.getClusterExpansionZoom(prop.cluster_id).then(zoom => {
+                self._datasource.getClusterExpansionZoom(prop.cluster_id).then(zoom => {
+                    if (zoom <= self._map.getCamera().maxZoom) {
                         self._map.setCamera({
                             center: pos,
-                            zoom: zoom
+                            zoom: zoom,
+                            type: 'ease',
+                            duration: 200
                         });
-                    });
-                } else {
-                    self.showSpiderCluster(cluster);
-                }
+                    } else {
+                        self.showSpiderCluster(cluster);
+                    }
+                });
             } else {
                 if (typeof prop._parentId !== 'undefined') {
                     s = self._datasource.getShapeById(prop._parentId);
